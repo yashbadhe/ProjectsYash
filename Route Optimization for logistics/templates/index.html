@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logistics Optimizer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBbN1paVzopAszIMWNCAV3dlxS-XPsqpxA&libraries=places"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 60px;
+            background-color: #2c3e50;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            height: 100vh;
+        }
+
+        .logo {
+            margin-bottom: 30px;
+        }
+
+        .logo i {
+            font-size: 2em;
+        }
+
+        .nav-item {
+            padding: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .nav-item:hover {
+            background-color: #34495e;
+        }
+
+        .nav-item i {
+            font-size: 1.5em;
+        }
+
+        .nav-item.active {
+            background-color: #34495e;
+        }
+
+        /* Main Content Styling */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            font-size: 2em;
+            color: #333;
+        }
+
+        .header-buttons button {
+            margin-left: 10px;
+        }
+
+        .content-wrapper {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+        }
+
+        /* Control Panel Styling */
+        .control-panel {
+            width: 350px;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-right: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            max-height: calc(100vh - 120px);
+        }
+
+        .panel-section {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+
+        .panel-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .input-group {
+            margin-bottom: 10px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .input-box {
+            display: flex;
+            align-items: center;
+            border: 1px solid #ddd;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .input-box i {
+            margin-right: 8px;
+            color: #777;
+        }
+
+        .input-field {
+            border: none;
+            padding: 8px;
+            flex: 1;
+            font-size: 1em;
+        }
+
+        .input-field:focus {
+            outline: none;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Map Container Styling */
+        .map-container {
+            flex: 1;
+            display: flex;
+            min-height: 0;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            border-radius: 5px;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: #007bff;
+            border: 1px solid #007bff;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .btn-outline:hover {
+            background-color: #f0f8ff;
+        }
+
+        /* Locations List Styling */
+        .locations-list {
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .location-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 5px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .location-item:last-child {
+            border-bottom: none;
+        }
+
+        .location-icon {
+            margin-right: 10px;
+            color: #dc3545;
+        }
+
+        .warehouse-icon {
+            margin-right: 10px;
+            color: #007bff;
+        }
+
+        .location-text {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+        }
+
+        .remove-btn:hover {
+            color: #c82333;
+        }
+
+        #Info Styling */
+        .cluster-info {
+            margin-top: 15px;
+        }
+
+        .cluster-card {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .cluster-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .cluster-title {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .cluster-details {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .cluster-route-info {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed #ddd;
+        }
+
+        /* Loading Indicator */
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+            z-index: 1000;
+        }
+
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Error Message */
+        #error {
+            color: #dc3545;
+            margin-top: 10px;
+            font-size: 0.9em;
+            display: none;
+        }
+
+        /* Legend Styling */
+        .map-legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 5;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 10px;
+            margin-right: 10px;
+        }
+
+        /* Tab styling */
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+        }
+
+        .tab {
+            padding: 10px 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            cursor: pointer;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+            margin-right: 5px;
+        }
+
+        .tab.active {
+            background-color: #fff;
+            border-bottom: 2px solid #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            border: 1px solid #ddd;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 0 5px 5px 5px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        /* Slider styling */
+        .slider-container {
+            margin: 15px 0;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .slider {
+            width: 100%;
+        }
+
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="logo">
+            <i class="fas fa-truck-fast"></i>
+        </div>
+        <div class="nav-item active">
+            <i class="fas fa-route"></i>
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-warehouse"></i>
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-chart-line"></i>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="header">
+            <h1 class="title">Logistics Optimizer</h1>
+            <div class="header-buttons">
+                <button class="btn btn-outline" id="export-btn">Export Data</button>
+                <button class="btn btn-primary" id="save-btn">Save Configuration</button>
+            </div>
+        </div>
+
+        <div class="content-wrapper">
+            <div class="control-panel">
+                <div class="tabs">
+                    <div class="tab active" data-tab="setup">Setup</div>
+                    <div class="tab" data-tab="clusters">Clusters</div>
+                    <div class="tab" data-tab="routes">Routes</div>
+                </div>
+
+                <div class="tab-content">
+                    <div class="tab-pane active" id="setup-tab">
+                        <div class="panel-section">
+                            <div class="panel-title">Warehouses</div>
+                            <div class="input-group">
+                                <label for="warehouse-input">Add Warehouse:</label>
+                                <div class="input-box">
+                                    <i class="fas fa-warehouse"></i>
+                                    <input type="text" id="warehouse-input" class="input-field" placeholder="Enter warehouse location">
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" id="add-warehouse-btn">Add Warehouse</button>
+                            <div class="locations-list" id="warehouses-list"></div>
+                        </div>
+
+                        <div class="panel-section">
+                            <div class="panel-title">Delivery Locations</div>
+                            <div class="input-group">
+                                <label for="location-input">Add Delivery Location:</label>
+                                <div class="input-box">
+                                    <i class="fas fa-location-dot"></i>
+                                    <input type="text" id="location-input" class="input-field" placeholder="Enter delivery location">
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" id="add-location-btn">Add Location</button>
+                            <button class="btn btn-outline" id="bulk-add-btn">Bulk Add</button>
+                            <div class="locations-list" id="locations-list"></div>
+                        </div>
+
+                        <div class="panel-section">
+                            <div class="panel-title">Clustering Options</div>
+                            <div class="slider-container">
+                                <div class="slider-label">
+                                    <span>Zone Radius (meters):</span>
+                                    <span id="radius-value">500</span>
+                                </div>
+                                <input type="range" id="radius-slider" class="slider" min="100" max="2000" value="500" step="100">
+                            </div>
+                            <div class="btn-group">
+                                <button class="btn btn-success" id="analyze-btn">Analyze Zones</button>
+                                <button class="btn btn-danger" id="reset-btn">Reset All</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane" id="clusters-tab">
+                        <div class="panel-section">
+                            <div class="panel-title">Cluster Analysis</div>
+                            <div id="cluster-summary">
+                                <p>Run the zone analysis to see cluster information.</p>
+                            </div>
+                            <div id="clusters-container"></div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane" id="routes-tab">
+                        <div class="panel-section">
+                            <div class="panel-title">Optimized Routes</div>
+                            <div id="route-summary">
+                                <p>Run the zone analysis to see route information.</p>
+                            </div>
+                            <button class="btn btn-primary" id="calculate-routes-btn">Calculate Routes</button>
+                            <div id="routes-container"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="map-container">
+                <div id="map"></div>
+                <div class="map-legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #007bff;"></div>
+                        <span>Warehouse</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #dc3545;"></div>
+                        <span>Delivery Location</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #28a745;"></div>
+                        <span>Cluster Center</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #999;"></div>
+                        <span>Unclustered Point</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="loading">
+        <div class="spinner"></div>
+        <p>Processing data...</p>
+    </div>
+
+    <div id="error"></div>
+
+    <script>
+        // Global variables
+        let map, directionsService, directionsRenderer;
+let markers = [];
+let clusterMarkers = [];
+let routeRenderers = [];
+let warehouses = [];
+let deliveryLocations = [];
+let clusterData = null;
+let routeData = null;
+const ROUTE_COLORS = ['#007AFF', '#28a745', '#dc3545', '#ffc107', '#6f42c1', '#fd7e14', '#20c997', '#6c757d'];
+const CLUSTER_COLORS = ['#ff5252', '#4caf50', '#2196f3', '#ff9800', '#9c27b0', '#607d8b', '#e91e63', '#009688'];
+
+// Initialize the map with Google Maps
+function initMap() {
+    const center = { lat: 19.0760, lng: 72.8777 }; // Default center (Mumbai)
+
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: center,
+        zoom: 11,
+        mapTypeControl: true,
+        fullscreenControl: true,
+        streetViewControl: false,
+        mapTypeControlOptions: {
+            style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
+        }
+    });
+
+    directionsService = new google.maps.DirectionsService();
+    directionsRenderer = new google.maps.DirectionsRenderer({
+        suppressMarkers: true
+    });
+
+    setupEventListeners();
+}
+
+        // Set up all event listeners
+        function setupEventListeners() {
+            // Tab navigation
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    activateTab(tabName);
+                });
+            });
+
+            // Add warehouse button
+            document.getElementById('add-warehouse-btn').addEventListener('click', addWarehouse);
+
+            // Add location button
+            document.getElementById('add-location-btn').addEventListener('click', addDeliveryLocation);
+
+            // Bulk add button
+            document.getElementById('bulk-add-btn').addEventListener('click', showBulkAddDialog);
+
+            // Analyze button
+            document.getElementById('analyze-btn').addEventListener('click', analyzeZones);
+
+            // Reset button
+            document.getElementById('reset-btn').addEventListener('click', resetAll);
+
+            // Calculate routes button
+            document.getElementById('calculate-routes-btn').addEventListener('click', calculateRoutes);
+
+            // Export button
+            document.getElementById('export-btn').addEventListener('click', exportData);
+
+            // Save button
+            document.getElementById('save-btn').addEventListener('click', saveConfiguration);
+
+            // Radius slider
+            document.getElementById('radius-slider').addEventListener('input', function() {
+                document.getElementById('radius-value').textContent = this.value;
+            });
+        }
+
+        // Function to activate a tab
+        function activateTab(tabName) {
+            // Hide all tab panes
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('active');
+            });
+
+            // Deactivate all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Activate the selected tab and pane
+            document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        // Function to add a warehouse
+        function addWarehouse() {
+            const warehouseInput = document.getElementById('warehouse-input');
+            const address = warehouseInput.value.trim();
+
+            if (address === '') {
+                showError('Please enter a warehouse address.');
+                return;
+            }
+
+            showLoading(true);
+
+            // Geocode the address
+            const geocoder = new google.maps.Geocoder();
+            geocoder.geocode({ address: address }, (results, status) => {
+                if (status === 'OK' && results[0]) {
+                    const location = results[0].geometry.location;
+                    const formattedAddress = results[0].formatted_address;
+
+                    // Create a new warehouse object
+                    const warehouse = {
+                        id: 'warehouse-' + Date.now(),
+                        address: formattedAddress,
+                        lat: location.lat(),
+                        lng: location.lng()
+                    };
+
+                    // Add to warehouses array
+                    warehouses.push(warehouse);
+
+                    // Add marker to map
+                    addWarehouseMarker(warehouse);
+
+                    // Add to warehouses list
+                    addWarehouseToList(warehouse);
+
+                    // Clear input
+                    warehouseInput.value = '';
+
+                    // Center map on the new location
+                    map.setCenter(location);
+                    map.setZoom(13);
+                } else {
+                    showError('Could not find the specified address. Please try again.');
+                }
+
+                showLoading(false);
+            });
+        }
+
+        // Function to add a warehouse marker to the map
+        function addWarehouseMarker(warehouse) {
+            const marker = new google.maps.Marker({
+                position: { lat: warehouse.lat, lng: warehouse.lng },
+                map: map,
+                title: warehouse.address,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    fillColor: '#007bff',
+                    fillOpacity: 1,
+                    strokeWeight: 0,
+                    scale: 10
+                }
+            });
+
+            // Add info window
+            const infoWindow = new google.maps.InfoWindow({
+                content: `<div><strong>Warehouse</strong><br>${warehouse.address}</div>`
+            });
+
+            marker.addListener('click', () => {
+                infoWindow.open(map, marker);
+            });
+
+            // Store marker reference with warehouse ID
+            markers.push({ id: warehouse.id, marker: marker });
+        }
+
+        // Function to add warehouse to the list
+        function addWarehouseToList(warehouse) {
+            const warehousesList = document.getElementById('warehouses-list');
+
+            const warehouseItem = document.createElement('div');
+            warehouseItem.className = 'location-item';
+            warehouseItem.dataset.id = warehouse.id;
+
+            warehouseItem.innerHTML = `
+                <i class="fas fa-warehouse warehouse-icon"></i>
+                <div class="location-text" title="${warehouse.address}">${warehouse.address}</div>
+                <button class="remove-btn" data-id="${warehouse.id}">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+
+            // Add event listener to remove button
+            warehouseItem.querySelector('.remove-btn').addEventListener('click', function() {
+                removeWarehouse(warehouse.id);
+            });
+
+            warehousesList.appendChild(warehouseItem);
+        }
+
+        // Function to remove a warehouse
+        function removeWarehouse(warehouseId) {
+            // Remove from warehouses array
+            warehouses = warehouses.filter(w => w.id !== warehouseId);
+
+            // Remove marker from map
+            const markerIndex = markers.findIndex(m => m.id === warehouseId);
+            if (markerIndex !== -1) {
+                markers[markerIndex].marker.setMap(null);
+                markers.splice(markerIndex, 1);
+            }
+
+            // Remove from list
+            const warehouseItem = document.querySelector(`.location-item[data-id="${warehouseId}"]`);
+            if (warehouseItem) {
+                warehouseItem.remove();
+            }
+        }
+
+        // Function to add a delivery location
+        function addDeliveryLocation() {
+            const locationInput = document.getElementById('location-input');
+            const address = locationInput.value.trim();
+
+            if (address === '') {
+                showError('Please enter a delivery location address.');
+                return;
+            }
+
+            showLoading(true);
+
+            // Geocode the address
+            const geocoder = new google.maps.Geocoder();
+            geocoder.geocode({ address: address }, (results, status) => {
+                if (status === 'OK' && results[0]) {
+                    const location = results[0].geometry.location;
+                    const formattedAddress = results[0].formatted_address;
+
+                    // Create a new location object
+                    const deliveryLocation = {
+                        id: 'location-' + Date.now(),
+                        address: formattedAddress,
+                        lat: location.lat(),
+                        lng: location.lng()
+                    };
+
+                    // Add to delivery locations array
+                    deliveryLocations.push(deliveryLocation);
+
+                    // Add marker to map
+                    addDeliveryMarker(deliveryLocation);
+
+                    // Add to locations list
+                    addLocationToList(deliveryLocation);
+
+                    // Clear input
+                    locationInput.value = '';
+
+                    // Center map on the new location
+                    map.setCenter(location);
+                    map.setZoom(13);
+                } else {
+                    showError('Could not find the specified address. Please try again.');
+                }
+
+                showLoading(false);
+            });
+        }
+
+        // Function to add a delivery marker to the map
+        function addDeliveryMarker(location) {
+            const marker = new google.maps.Marker({
+                position: { lat: location.lat, lng: location.lng },
+                map: map,
+                title: location.address,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    fillColor: '#dc3545',
+                    fillOpacity: 1,
+                    strokeWeight: 0,
+                    scale: 7
+                }
+            });
+
+            // Add info window
+            const infoWindow = new google.maps.InfoWindow({
+                content: `<div><strong>Delivery Location</strong><br>${location.address}</div>`
+            });
+
+            marker.addListener('click', () => {
+                infoWindow.open(map, marker);
+            });
+
+            // Store marker reference with location ID
+            markers.push({ id: location.id, marker: marker });
+        }
+
+        // Function to add location to the list
+        function addLocationToList(location) {
+            const locationsList = document.getElementById('locations-list');
+
+            const locationItem = document.createElement('div');
+            locationItem.className = 'location-item';
+            locationItem.dataset.id = location.id;
+
+            locationItem.innerHTML = `
+                <i class="fas fa-location-dot location-icon"></i>
+                <div class="location-text" title="${location.address}">${location.address}</div>
+                <button class="remove-btn" data-id="${location.id}">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+
+            // Add event listener to remove button
+            locationItem.querySelector('.remove-btn').addEventListener('click', function() {
+                removeLocation(location.id);
+            });
+
+            locationsList.appendChild(locationItem);
+        }
+
+        // Function to remove a location
+        function removeLocation(locationId) {
+            // Remove from delivery locations array
+            deliveryLocations = deliveryLocations.filter(l => l.id !== locationId);
+
+            // Remove marker from map
+            const markerIndex = markers.findIndex(m => m.id === locationId);
+            if (markerIndex !== -1) {
+                markers[markerIndex].marker.setMap(null);
+                markers.splice(markerIndex, 1);
+            }
+
+            // Remove from list
+            const locationItem = document.querySelector(`.location-item[data-id="${locationId}"]`);
+            if (locationItem) {
+                locationItem.remove();
+            }
+        }
+
+        // Function to show bulk add dialog
+        function showBulkAddDialog() {
+            const bulkAddHtml = `
+                <div id="bulk-add-dialog" title="Bulk Add Locations">
+                    <p>Enter one address per line:</p>
+                    <textarea id="bulk-addresses" rows="10" style="width: 100%;"></textarea>
+                </div>
+            `;
+
+            // Create dialog element if it doesn't exist
+            if (!document.getElementById('bulk-add-dialog')) {
+                const dialogDiv = document.createElement('div');
+                dialogDiv.innerHTML = bulkAddHtml;
+                document.body.appendChild(dialogDiv.firstElementChild);
+
+                // Initialize jQuery UI dialog
+                $("#bulk-add-dialog").dialog({
+                    autoOpen: false,
+                    width: 500,
+                    modal: true,
+                    buttons: {
+                        "Add Locations": function() {
+                            processBulkAddresses();
+                            $(this).dialog("close");
+                        },
+                        Cancel: function() {
+                            $(this).dialog("close");
+                        }
+                    }
+                });
+            }
+
+            // Open the dialog
+            $("#bulk-add-dialog").dialog("open");
+        }
+
+        // Function to process bulk addresses
+        function processBulkAddresses() {
+            const addresses = document.getElementById('bulk-addresses').value.trim().split('\n');
+
+            if (addresses.length === 0 || (addresses.length === 1 && addresses[0] === '')) {
+                showError('Please enter at least one address.');
+                return;
+            }
+
+            showLoading(true);
+
+            // Process each address sequentially to avoid rate limiting
+            processNextAddress(addresses, 0);
+        }
+
+        // Process addresses sequentially
+        function processNextAddress(addresses, index) {
+            if (index >= addresses.length) {
+                showLoading(false);
+                return;
+            }
+
+            const address = addresses[index].trim();
+            if (address === '') {
+                // Skip empty lines
+                processNextAddress(addresses, index + 1);
+                return;
+            }
+
+            const geocoder = new google.maps.Geocoder();
+            geocoder.geocode({ address: address }, (results, status) => {
+                if (status === 'OK' && results[0]) {
+                    const location = results[0].geometry.location;
+                    const formattedAddress = results[0].formatted_address;
+
+                    // Create a new location object
+                    const deliveryLocation = {
+                        id: 'location-' + Date.now() + '-' + index,
+                        address: formattedAddress,
+                        lat: location.lat(),
+                        lng: location.lng()
+                    };
+
+                    // Add to delivery locations array
+                    deliveryLocations.push(deliveryLocation);
+
+                    // Add marker to map
+                    addDeliveryMarker(deliveryLocation);
+
+                    // Add to locations list
+                    addLocationToList(deliveryLocation);
+                }
+
+                // Process next address after a small delay to avoid hitting rate limits
+                setTimeout(() => {
+                    processNextAddress(addresses, index + 1);
+                }, 200);
+            });
+        }
+
+        // Function to analyze zones (clustering)
+        function analyzeZones() {
+    if (deliveryLocations.length === 0) {
+        showError('Please add at least one delivery location.');
+        return;
+    }
+
+    showLoading(true);
+
+    // Prepare data for clustering
+    const data = {
+        locations: deliveryLocations,
+        warehouses: warehouses,
+        radius: parseInt(document.getElementById('radius-slider').value)
+    };
+
+    // Send clustering request to backend
+    fetch('/cluster', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            showError(data.error);
+            return;
+        }
+
+        // Store cluster data
+        clusterData = data.clusters;
+
+        // Display clusters on the map
+        displayClusters(data.clusters);
+
+        // Update cluster info in panel
+        updateClusterInfo(data.clusters);
+
+        // Switch to clusters tab
+        activateTab('clusters');
+    })
+    .catch(error => {
+        showError('Failed to perform clustering. Please try again.');
+        console.error(error);
+    })
+    .finally(() => {
+        showLoading(false);
+    });
+}
+
+        // Simple DBSCAN implementation for clustering
+        function performDBSCAN(points, radius) {
+            const radiusInDegrees = radius / 111000; // Approximate conversion from meters to degrees
+            let clusterIndex = 0;
+            const clusters = [];
+
+            // Mark all points as unvisited
+            const visited = new Array(points.length).fill(false);
+
+            // Cluster assignments
+            const clusterAssignments = new Array(points.length).fill(-1);
+
+            // Function to get neighbors within radius
+            function getNeighbors(pointIndex) {
+                const neighbors = [];
+                const point = points[pointIndex];
+
+                for (let i = 0; i < points.length; i++) {
+                    if (i === pointIndex) continue;
+
+                    const distance = getDistance(
+                        point.lat, point.lng,
+                        points[i].lat, points[i].lng
+                    );
+
+                    if (distance <= radiusInDegrees) {
+                        neighbors.push(i);
+                    }
+                }
+
+                return neighbors;
+            }
+
+            // Process each point
+            for (let i = 0; i < points.length; i++) {
+                if (visited[i]) continue;
+
+                visited[i] = true;
+                const neighbors = getNeighbors(i);
+
+                // Noise point (not enough neighbors)
+                if (neighbors.length < 2) {
+                    clusterAssignments[i] = -1;
+                    continue;
+                }
+
+                // Create new cluster
+                const cluster = {
+                    id: clusterIndex,
+                    points: [points[i]],
+                    center: { lat: 0, lng: 0 }
+                };
+
+                clusterAssignments[i] = clusterIndex;
+
+                // Process neighbors
+                const neighborQueue = [...neighbors];
+                for (let j = 0; j < neighborQueue.length; j++) {
+                    const neighborIndex = neighborQueue[j];
+
+                    if (!visited[neighborIndex]) {
+                        visited[neighborIndex] = true;
+
+                        const subNeighbors = getNeighbors(neighborIndex);
+                        if (subNeighbors.length >= 2) {
+                            neighborQueue.push(...subNeighbors.filter(n => !neighborQueue.includes(n) && n !== i));
+                        }
+                    }
+
+                    if (clusterAssignments[neighborIndex] === -1) {
+                        clusterAssignments[neighborIndex] = clusterIndex;
+                        cluster.points.push(points[neighborIndex]);
+                    }
+                }
+
+                // Calculate cluster center
+                let sumLat = 0, sumLng = 0;
+                cluster.points.forEach(p => {
+                    sumLat += p.lat;
+                    sumLng += p.lng;
+                });
+
+                cluster.center = {
+                    lat: sumLat / cluster.points.length,
+                    lng: sumLng / cluster.points.length
+                };
+
+                clusters.push(cluster);
+                clusterIndex++;
+            }
+
+            // Add noise points as a special "cluster"
+            const noisePoints = [];
+            for (let i = 0; i < points.length; i++) {
+                if (clusterAssignments[i] === -1) {
+                    noisePoints.push(points[i]);
+                }
+            }
+
+            if (noisePoints.length > 0) {
+                clusters.push({
+                    id: -1,
+                    points: noisePoints,
+                    center: null
+                });
+            }
+
+            return clusters;
+        }
+
+        // Function to calculate haversine distance between two points
+        function getDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371000; // Earth radius in meters
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+
+            const a =
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLng/2) * Math.sin(dLng/2);
+
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return (R * c) / 111000; // Convert back to approximate degrees
+        }
+
+        // Function to display clusters on map
+        function displayClusters(clusters) {
+            clusters.forEach((cluster, index) => {
+                if (cluster.id === -1) {
+                    // Display noise points differently
+                    cluster.points.forEach(point => {
+                        // Find and update the existing marker
+                        const markerObj = markers.find(m => m.id === point.id);
+                        if (markerObj) {
+                            markerObj.marker.setIcon({
+                                path: google.maps.SymbolPath.CIRCLE,
+                                fillColor: '#999',
+                                fillOpacity: 1,
+                                strokeWeight: 0,
+                                scale: 7
+                            });
+                        }
+                    });
+                } else {
+                    // Display cluster center
+                    const colorIndex = index % CLUSTER_COLORS.length;
+                    const clusterColor = CLUSTER_COLORS[colorIndex];
+
+                    // Add cluster center marker
+                    const centerMarker = new google.maps.Marker({
+                        position: cluster.center,
+                        map: map,
+                        title: `Cluster ${index + 1}`,
+                        icon: {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            fillColor: '#28a745',
+                            fillOpacity: 1,
+                            strokeWeight: 0,
+                            scale: 12
+                        },
+                        label: {
+                            text: (index + 1).toString(),
+                            color: 'white',
+                            fontSize: '10px'
+                        }
+                    });
+
+                    clusterMarkers.push(centerMarker);
+
+                    // Add circle to represent cluster boundary
+                    const circle = new google.maps.Circle({
+                        map: map,
+                        center: cluster.center,
+                        radius: parseInt(document.getElementById('radius-slider').value),
+                        strokeColor: clusterColor,
+                        strokeOpacity: 0.8,
+                        strokeWeight: 2,
+                        fillColor: clusterColor,
+                        fillOpacity: 0.1
+                    });
+
+                    clusterMarkers.push(circle);
+
+                    // Update point markers to show cluster membership
+                    cluster.points.forEach(point => {
+                        const markerObj = markers.find(m => m.id === point.id);
+                        if (markerObj) {
+                            markerObj.marker.setIcon({
+                                path: google.maps.SymbolPath.CIRCLE,
+                                fillColor: clusterColor,
+                                fillOpacity: 1,
+                                strokeWeight: 0,
+                                scale: 7
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+        // Function to clear cluster markers
+        function clearClusterMarkers() {
+            clusterMarkers.forEach(marker => {
+                marker.setMap(null);
+            });
+
+            clusterMarkers = [];
+
+            // Reset delivery location markers to original color
+            markers.forEach(markerObj => {
+                if (markerObj.id.startsWith('location-')) {
+                    markerObj.marker.setIcon({
+                        path: google.maps.SymbolPath.CIRCLE,
+                        fillColor: '#dc3545',
+                        fillOpacity: 1,
+                        strokeWeight: 0,
+                        scale: 7
+                    });
+                }
+            });
+        }
+
+        // Function to update cluster information in panel
+        function updateClusterInfo(clusters) {
+            const clusterSummary = document.getElementById('cluster-summary');
+            const clustersContainer = document.getElementById('clusters-container');
+
+            // Update summary
+            const totalPoints = deliveryLocations.length;
+            const noiseCluster = clusters.find(c => c.id === -1);
+            const noisePoints = noiseCluster ? noiseCluster.points.length : 0;
+            const clusteredPoints = totalPoints - noisePoints;
+
+            clusterSummary.innerHTML = `
+                <p><strong>Total Delivery Points:</strong> ${totalPoints}</p>
+                <p><strong>Clustered Points:</strong> ${clusteredPoints} (${Math.round(clusteredPoints/totalPoints*100)}%)</p>
+                <p><strong>Unclustered Points:</strong> ${noisePoints} (${Math.round(noisePoints/totalPoints*100)}%)</p>
+                <p><strong>Number of Clusters:</strong> ${clusters.length - (noiseCluster ? 1 : 0)}</p>
+            `;
+
+            // Clear previous cluster cards
+            clustersContainer.innerHTML = '';
+
+            // Add cluster cards
+            clusters.forEach((cluster, index) => {
+                if (cluster.id === -1) return; // Skip noise cluster
+
+                const clusterCard = document.createElement('div');
+                clusterCard.className = 'cluster-card';
+
+                const colorIndex = index % CLUSTER_COLORS.length;
+                const clusterColor = CLUSTER_COLORS[colorIndex];
+
+                clusterCard.innerHTML = `
+                    <div class="cluster-header">
+                        <span class="cluster-title" style="color: ${clusterColor};">Cluster ${index + 1}</span>
+                        <span class="cluster-points">${cluster.points.length} points</span>
+                    </div>
+                    <div class="cluster-details">
+                        <p><strong>Center:</strong> ${cluster.center.lat.toFixed(4)}, ${cluster.center.lng.toFixed(4)}</p>
+                        <p><strong>Radius:</strong> ${document.getElementById('radius-slider').value} meters</p>
+                    </div>
+                `;
+
+                clustersContainer.appendChild(clusterCard);
+            });
+        }
+
+        // Function to calculate routes
+        function calculateRoutes() {
+    if (!clusterData || clusterData.length === 0) {
+        showError('Please run zone analysis first.');
+        return;
+    }
+
+    if (warehouses.length === 0) {
+        showError('Please add at least one warehouse.');
+        return;
+    }
+
+    showLoading(true);
+
+    // Prepare data for route calculation
+    const data = {
+        clusters: clusterData
+    };
+
+    // Send route calculation request to backend
+    fetch('/calculate_routes', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            showError(data.error);
+            return;
+        }
+
+        // Store route data
+        routeData = data.results;
+
+        // Display routes on the map
+        drawRoutes(data.results);
+
+        // Update route info in panel
+        updateRouteInfo();
+
+        // Switch to routes tab
+        activateTab('routes');
+    })
+    .catch(error => {
+        showError('Failed to calculate routes. Please try again.');
+        console.error(error);
+    })
+    .finally(() => {
+        showLoading(false);
+    });
+}
+
+function calculateWarehouseToClusterRoutes() {
+    // Get only valid clusters (not noise)
+    const validClusters = clusterData.filter(cluster => cluster.id !== -1);
+
+    if (validClusters.length === 0) {
+        showError('No valid clusters found. Try adjusting the zone radius.');
+        showLoading(false);
+        return;
+    }
+
+    // For simplicity, use the first warehouse as origin
+    const warehouse = warehouses[0];
+
+    // Store route data
+    routeData = {
+        warehouse: warehouse,
+        routes: []
+    };
+
+    // Process clusters sequentially to avoid rate limiting
+    processNextClusterRoute(warehouse, validClusters, 0);
+}
+
+function processNextClusterRoute(warehouse, clusters, index) {
+    if (index >= clusters.length) {
+        // All routes processed
+        updateRouteInfo();
+        activateTab('routes');
+        showLoading(false);
+        return;
+    }
+
+    const cluster = clusters[index];
+    const request = {
+        origin: { lat: warehouse.lat, lng: warehouse.lng },
+        destination: { lat: cluster.center.lat, lng: cluster.center.lng },
+        travelMode: google.maps.TravelMode.DRIVING
+    };
+
+    directionsService.route(request, (result, status) => {
+        if (status === 'OK') {
+            // Create a new renderer for this route
+            const renderer = new google.maps.DirectionsRenderer({
+                suppressMarkers: true,
+                polylineOptions: {
+                    strokeColor: ROUTE_COLORS[index % ROUTE_COLORS.length],
+                    strokeWeight: 5,
+                    strokeOpacity: 0.7
+                },
+                map: map
+            });
+
+            renderer.setDirections(result);
+            routeRenderers.push(renderer);
+
+            // Store route data
+            const route = {
+                cluster: cluster,
+                distance: result.routes[0].legs[0].distance.text,
+                duration: result.routes[0].legs[0].duration.text,
+                color: ROUTE_COLORS[index % ROUTE_COLORS.length]
+            };
+
+            routeData.routes.push(route);
+        }
+
+        // Process next cluster after a small delay
+        setTimeout(() => {
+            processNextClusterRoute(warehouse, clusters, index + 1);
+        }, 300);
+    });
+}
+
+
+        // Function to clear routes
+        function clearRoutes() {
+    routeRenderers.forEach(renderer => {
+        renderer.setMap(null);
+    });
+
+    routeRenderers = [];
+    routeData = null;
+}
+
+        function drawRoutes(routes) {
+    // Clear existing routes
+    clearRoutes();
+
+    routes.forEach((route, index) => {
+        const routeCoordinates = route.routes[0].steps.map(step => ({
+            lat: step.start_location.lat,
+            lng: step.start_location.lng
+        }));
+
+        const routeColor = ROUTE_COLORS[index % ROUTE_COLORS.length];
+
+        // Create a polyline for the route
+        const routePolyline = new google.maps.Polyline({
+            path: routeCoordinates,
+            geodesic: true,
+            strokeColor: routeColor,
+            strokeOpacity: 0.6,
+            strokeWeight: 6
+        });
+
+        // Set the polyline on the map
+        routePolyline.setMap(map);
+
+        // Store the polyline for later reference
+        routeRenderers.push(routePolyline);
+    });
+
+    // Fit the map to the bounds of the first route
+    if (routes.length > 0) {
+        const bounds = new google.maps.LatLngBounds();
+        routes[0].routes[0].steps.forEach(step => {
+            bounds.extend({ lat: step.start_location.lat, lng: step.start_location.lng });
+        });
+        map.fitBounds(bounds);
+    }
+}
+
+        // Function to update route information
+        function updateRouteInfo() {
+    if (!routeData) return;
+
+    const routeSummary = document.getElementById('route-summary');
+    const routesContainer = document.getElementById('routes-container');
+
+    // Update summary
+    routeSummary.innerHTML = `
+        <p><strong>Number of Routes:</strong> ${routeData.length}</p>
+    `;
+
+    // Clear previous route cards
+    routesContainer.innerHTML = '';
+
+    // Add route cards
+    routeData.forEach((route, index) => {
+        const routeCard = document.createElement('div');
+        routeCard.className = 'cluster-card';
+
+        routeCard.innerHTML = `
+            <div class="cluster-header">
+                <span class="cluster-title" style="color: ${ROUTE_COLORS[index % ROUTE_COLORS.length]};">Route ${index + 1}</span>
+            </div>
+            <div class="cluster-details">
+                <p><strong>Distance:</strong> ${route.routes[0].distance.text}</p>
+                <p><strong>Duration:</strong> ${route.routes[0].duration.text}</p>
+                <p><strong>Fuel Cost:</strong> ₹${route.routes[0].fuel_cost}</p>
+            </div>
+            <div class="cluster-route-info">
+                <p><strong>Start:</strong> ${route.warehouse.address}</p>
+                <p><strong>End:</strong> Cluster center at ${route.cluster_center.lat.toFixed(4)}, ${route.cluster_center.lng.toFixed(4)}</p>
+            </div>
+        `;
+
+        routesContainer.appendChild(routeCard);
+    });
+}
+
+        // Function to reset all data
+        function resetAll() {
+            // Clear markers
+            markers.forEach(markerObj => {
+                markerObj.marker.setMap(null);
+            });
+
+            // Clear cluster markers
+            clearClusterMarkers();
+
+            // Clear routes
+            clearRoutes();
+
+            // Reset arrays
+            markers = [];
+            warehouses = [];
+            deliveryLocations = [];
+            clusterData = null;
+
+            // Clear lists
+            document.getElementById('warehouses-list').innerHTML = '';
+            document.getElementById('locations-list').innerHTML = '';
+            document.getElementById('clusters-container').innerHTML = '';
+            document.getElementById('routes-container').innerHTML = '';
+
+            // Reset summaries
+            document.getElementById('cluster-summary').innerHTML = '<p>Run the zone analysis to see cluster information.</p>';
+            document.getElementById('route-summary').innerHTML = '<p>Run the zone analysis to see route information.</p>';
+
+            // Reset to setup tab
+            activateTab('setup');
+        }
+
+        // Function to export data
+        function exportData() {
+            if (!clusterData && !routeData) {
+                showError('No data to export. Please run analysis first.');
+                return;
+            }
+
+            const exportData = {
+                warehouses: warehouses,
+                deliveryLocations: deliveryLocations,
+                clusters: clusterData,
+                routes: routeData
+            };
+
+            // Create a JSON blob
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+
+            // Create a download link
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'delivery-zones-export-' + new Date().toISOString().split('T')[0] + '.json';
+
+            // Trigger download
+            document.body.appendChild(a);
+            a.click();
+
+            // Clean up
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+        }
+
+        // Function to save configuration
+        function saveConfiguration() {
+            // Get current state
+            const config = {
+                warehouses: warehouses,
+                deliveryLocations: deliveryLocations,
+                radius: document.getElementById('radius-slider').value
+            };
+
+            // Save to local storage
+            localStorage.setItem('deliveryZonesConfig', JSON.stringify(config));
+
+            // Show success message
+            showMessage('Configuration saved successfully.');
+        }
+
+        // Function to load saved configuration
+        function loadSavedConfiguration() {
+            const savedConfig = localStorage.getItem('deliveryZonesConfig');
+
+            if (!savedConfig) return;
+
+            try {
+                const config = JSON.parse(savedConfig);
+
+                // Set radius value
+                if (config.radius) {
+                    document.getElementById('radius-slider').value = config.radius;
+                    document.getElementById('radius-value').textContent = config.radius;
+                }
+
+                // Load warehouses
+                if (config.warehouses && Array.isArray(config.warehouses)) {
+                    config.warehouses.forEach(warehouse => {
+                        // Add to warehouses array
+                        warehouses.push(warehouse);
+
+                        // Add marker to map
+                        addWarehouseMarker(warehouse);
+
+                        // Add to warehouses list
+                        addWarehouseToList(warehouse);
+                    });
+                }
+
+                // Load delivery locations
+                if (config.deliveryLocations && Array.isArray(config.deliveryLocations)) {
+                    config.deliveryLocations.forEach(location => {
+                        // Add to delivery locations array
+                        deliveryLocations.push(location);
+
+                        // Add marker to map
+                        addDeliveryMarker(location);
+
+                        // Add to locations list
+                        addLocationToList(location);
+                    });
+                }
+
+                // Fit bounds if there are locations
+                if (markers.length > 0) {
+                    const bounds = new google.maps.LatLngBounds();
+                    markers.forEach(markerObj => {
+                        bounds.extend(markerObj.marker.getPosition());
+                    });
+
+                    map.fitBounds(bounds);
+                }
+
+                showMessage('Configuration loaded successfully.');
+            } catch (e) {
+                console.error('Error loading saved configuration:', e);
+            }
+        }
+
+        function drawRoutes(routes) {
+    // Clear existing routes
+    clearRoutes();
+
+    routes.forEach((route, index) => {
+        const routeCoordinates = route.route.map(p => ({ lat: p.latitude, lng: p.longitude }));
+        const routeColor = ROUTE_COLORS[index % ROUTE_COLORS.length];
+
+        // Create a polyline for the route
+        const routePolyline = new google.maps.Polyline({
+            path: routeCoordinates,
+            geodesic: true,
+            strokeColor: routeColor,
+            strokeOpacity: 0.6,
+            strokeWeight: 6
+        });
+
+        // Set the polyline on the map
+        routePolyline.setMap(map);
+
+        // Store the polyline for later reference
+        routeRenderers.push(routePolyline);
+    });
+
+    // Fit the map to the bounds of the first route
+    if (routes.length > 0) {
+        const bounds = new google.maps.LatLngBounds();
+        routes[0].route.forEach(point => {
+            bounds.extend({ lat: point.latitude, lng: point.longitude });
+        });
+        map.fitBounds(bounds);
+    }
+}
+
+        // Helper function to show error messages
+        function showError(message) {
+            // Create toast notification
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-error';
+            toast.innerHTML = `
+                <i class="fas fa-exclamation-circle"></i>
+                <span>${message}</span>
+            `;
+
+            document.body.appendChild(toast);
+
+            // Show and fade out
+            setTimeout(() => {
+                toast.classList.add('show');
+
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => {
+                        document.body.removeChild(toast);
+                    }, 300);
+                }, 3000);
+            }, 10);
+        }
+
+        // Helper function to show success messages
+        function showMessage(message) {
+            // Create toast notification
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-success';
+            toast.innerHTML = `
+                <i class="fas fa-check-circle"></i>
+                <span>${message}</span>
+            `;
+
+            document.body.appendChild(toast);
+
+            // Show and fade out
+            setTimeout(() => {
+                toast.classList.add('show');
+
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => {
+                        document.body.removeChild(toast);
+                    }, 300);
+                }, 3000);
+            }, 10);
+        }
+
+        // Helper function to show/hide loading indicator
+        function showLoading(show) {
+            const loadingOverlay = document.getElementById('loading');
+
+            if (show) {
+                loadingOverlay.style.display = 'flex';
+            } else {
+                loadingOverlay.style.display = 'none';
+            }
+        }
+
+        // Initialize on window load
+        window.onload = function() {
+            // Initialize map when Google Maps API is loaded
+            initMap();
+
+            // Load saved configuration
+            setTimeout(loadSavedConfiguration, 500);
+        };
+    </script>
+</body>
+</html>
