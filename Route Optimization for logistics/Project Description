@@ -1,0 +1,28 @@
+Project Description
+This project is a medium-sized Flask backend application that streamlines delivery logistics through geospatial clustering and route optimization. It integrates with Google Maps and Weather APIs to provide efficient delivery planning, fuel cost estimation, and real-time weather data.
+
+Features:
+1.Location Clustering: Uses DBSCAN (from scikit-learn) to group delivery locations based on proximity, optimizing delivery batches.
+2.Warehouse Assignment: Automatically assigns each cluster to the nearest warehouse using geographic distance.
+3.Route Optimization: Calculates optimal driving routes for each cluster using the Google Directions API, supporting multiple waypoints and route alternatives.
+4.Fuel Cost Estimation: Estimates fuel consumption and cost for each route based on configurable fuel price and average vehicle consumption.
+5.Weather Integration: Fetches current weather data for each cluster center using the Weather API, enabling weather-aware delivery planning.
+6. Autocomplete: Provides address autocomplete via the Google Places API for streamlined location input.
+7.RESTful API: Exposes endpoints for clustering, route calculation, optimized routing, and autocomplete, supporting integration with frontend apps.
+8.CORS Support: Enables cross-origin requests for seamless frontend-backend communication.
+
+Tech Stack:
+1.Python (Flask)
+2.scikit-learn (DBSCAN)
+3.Google Maps Platform (Geocoding, Directions, Places APIs)
+4.WeatherAPI
+5.NumPy
+6.Flask-CORS
+7.dotenv
+
+Typical Workflow:
+1.User submits delivery locations and warehouses.
+2.The system clusters locations, assigns clusters to the nearest warehouse, and calculates optimal routes.
+3.Returns detailed clustering, routing, fuel, and weather data as JSON for further processing or display.
+
+This backend is ideal for logistics companies or delivery services seeking to automate and optimize delivery route planning with real-time mapping and weather data integration.
