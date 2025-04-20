@@ -1,0 +1,21 @@
+Project Description
+
+This project is a medium-sized Flask web application that provides simple movie recommendations based on user ratings. It uses pandas for data handling and works with two CSV datasets: `movies.csv` (containing movie titles and genres) and `ratings.csv` (containing user ratings for movies).
+
+Features:
+- User-Based Recommendations:Users can enter their user ID, and the app recommends five movies they haven't rated yet. If a user has not rated any movies, it returns five random movies.
+- Web Interface:The app provides a user-friendly web interface for submitting user IDs and viewing recommended movies.
+- Data Handling: Utilizes pandas to efficiently load and process movie and rating data from CSV files.
+- Flask Backend: Handles routing, form submission, and rendering of results using Flask.
+
+Tech Stack:
+- Python
+- Flask
+- pandas
+
+Usage:
+1. Start the Flask application.
+2. Open the web interface in your browser.
+3. Enter a user ID to receive personalized movie recommendations.
+
+This project is ideal as a starting point for learning about recommendation systems, Flask web development, and basic data manipulation with pandas. It can be extended with more advanced recommendation algorithms or additional features as needed.
