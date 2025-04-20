@@ -1,0 +1,40 @@
+Project Description
+
+This project is a medium-sized Streamlit web application for a Department-wise Knowledge Base System that leverages LangChain alongside Google Generative AI, FAISS, and MongoDB. It enables organizations to centralize, manage, and query knowledge resources across multiple departments, with dedicated user and admin portals, semantic search, and AI-powered question answering.
+
+Key Features:
+- LangChain Integration:
+  - Uses LangChain for chaining together LLMs, prompt templates, and vector search, enabling retrieval-augmented generation (RAG) over uploaded documents.
+  - Employs LangChain’s text splitting, embedding, and conversational QA chains for robust, context-aware answers.
+- Departmental Knowledge Segregation:
+  - Supports multiple departments (e.g., HR, Finance, IT, Operations), each with its own knowledge base and admin controls.
+- User Portal:
+  - Users select a department and ask questions in natural language.
+  - Answers are retrieved from stored documents using semantic similarity (FAISS) and LangChain’s QA chains; fallback to Google Generative AI if not found in context.
+  - Maintains and allows download of conversation history, including department context.
+  - Unanswered questions are flagged for admin review.
+- Admin Portal:
+  - Admins upload and manage documents (PDF, DOCX, Excel, CSV, JSON) for their department.
+  - View and answer pending user queries, with answers stored using LangChain’s embedding and vector store capabilities.
+  - Access statistics on document count, answered/pending queries, and recent activity.
+  - Super admins can manage departments and register department-specific admins.
+- File Support: Handles a wide range of document types, extracting and storing their content for semantic search and retrieval.
+- Authentication: Simple authentication for admins, with department-level access control.
+- AI-Powered Q&A: Integrates Google Generative AI and LangChain for context-aware question answering and semantic similarity matching.
+- Vector Search:Uses FAISS and LangChain embeddings for efficient semantic search over large document collections.
+- Statistics Dashboard: Visualizes key metrics for knowledge base health and usage.
+
+Tech Stack:
+- Python
+- Streamlit
+- LangChain (with Google Generative AI, FAISS)
+- MongoDB (PyMongo)
+- pandas, PyPDF2, python-docx, openpyxl
+
+Typical Workflow:
+1. Admins upload documents and manage unanswered queries for their department.
+2. Users select a department and ask questions; the system provides answers from the knowledge base using LangChain-powered retrieval and generation.
+3. Unanswered queries are escalated to admins for review and response.
+4. uper admins can add new departments and manage department admins.
+
+This application is ideal for organizations seeking a scalable, department-aware knowledge management and Q&A platform, with robust admin controls and modern AI-powered search and retrieval using LangChain.
