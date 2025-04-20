@@ -1,0 +1,27 @@
+ Project Description
+This project is a Streamlit-based web application for pose estimation and basic activity recognition from images and videos using MediaPipe and OpenCV[1]. Users can upload an image or video, and the app will detect human poses and classify them as "Standing," "Sitting," "Lying Down," or "Unknown Pose" based on adjustable thresholds.
+
+Features:
+- Pose Detection: Utilizes the MediaPipe Pose solution to detect and visualize human body landmarks in images and videos.
+- Activity Recognition: Classifies detected poses into standing, sitting, or lying down using customizable thresholds for greater flexibility and accuracy.
+- Interactive Threshold Adjustment: Users can fine-tune the thresholds for each activity type directly from the sidebar to better suit different body types or camera angles.
+- Image and Video Support: Accepts both image (`.jpg`, `.png`) and video (`.mp4`) uploads for processing.
+- Real-time Feedback: Displays processed images or video frames with pose landmarks and activity labels overlaid.
+
+Tech Stack:
+- Python
+- Streamlit
+- OpenCV
+- MediaPipe
+- NumPy
+
+Usage:
+1. Launch the Streamlit app.
+2. Upload an image or video file via the sidebar.
+3. Adjust the standing, sitting, and lying down thresholds as needed.
+4. View the processed image or video with pose landmarks and activity classification.
+
+This tool is ideal for quick prototyping, educational purposes, or as a starting point for more advanced pose-based activity recognition projects.
+
+
+
